@@ -11,8 +11,10 @@ API_KEY = os.environ.get('API_KEY', 'DEMO_KEY')
 CACHE_TIMEOUT = int(os.environ.get('CACHE_TIMEOUT', 24*60*60))
 SERVICE_PORT = int(os.environ.get('SERVICE_PORT', 5000))
 
-if os.path.exists('config.json'):
-    with open('config.json', 'r') as f:
+CONFIG_PATH = os.path.join(os.path.dirname(__file__), 'Config/config.json')
+
+if os.path.exists(CONFIG_PATH):
+    with open(CONFIG_PATH, 'r') as f:
         config = json.load(f)
         if config is not None:
             API_KEY = config.get('api_key', API_KEY)
@@ -103,7 +105,7 @@ def submit():
         'service_port': SERVICE_PORT
     }
     
-    with open('config.json', 'w') as f:
+    with open(CONFIG_PATH, 'w') as f:
         json.dump(config, f)
 
     return 'Config saved', 200

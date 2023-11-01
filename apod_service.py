@@ -9,7 +9,6 @@ app = flask.Flask(__name__)
 
 API_KEY = os.environ.get('API_KEY', 'DEMO_KEY')
 CACHE_TIMEOUT = int(os.environ.get('CACHE_TIMEOUT', 24*60*60))
-SERVICE_PORT = int(os.environ.get('SERVICE_PORT', 5000))
 
 CONFIG_PATH = os.path.join(os.path.dirname(__file__), 'Config/config.json')
 
@@ -19,7 +18,6 @@ if os.path.exists(CONFIG_PATH):
         if config is not None:
             API_KEY = config.get('api_key', API_KEY)
             CACHE_TIMEOUT = config.get('cache_timeout', CACHE_TIMEOUT)
-            SERVICE_PORT = config.get('service_port', SERVICE_PORT)
 
 def get_nasa_apod():
     url = f'https://api.nasa.gov/planetary/apod?api_key={API_KEY}'
@@ -55,9 +53,6 @@ def index():
     cache_timeout_container = page.find('div', {'id': 'cache_timeout_container'})
     cache_timeout_box = cache_timeout_container.find('input', {'id': 'cache_timeout'})
     cache_timeout_box['value'] = str(CACHE_TIMEOUT)
-    service_port_container = page.find('div', {'id': 'service_port_container'})
-    service_port_box = service_port_container.find('input', {'id': 'service_port'})
-    service_port_box['value'] = str(SERVICE_PORT)
     return str(page)
 
 @app.route('/info', methods=['GET'])
@@ -90,19 +85,15 @@ def clear():
 def submit():
     api_key = flask.request.json.get('api_key')
     cache_timeout = flask.request.json.get('cache_timeout')
-    service_port = flask.request.json.get('service_port')
     
     if api_key is not None:
         API_KEY = api_key
     if cache_timeout is not None:
         CACHE_TIMEOUT = int(cache_timeout)
-    if service_port is not None:
-        SERVICE_PORT = int(service_port)
     
     config = {
         'api_key': API_KEY,
-        'cache_timeout': CACHE_TIMEOUT,
-        'service_port': SERVICE_PORT
+        'cache_timeout': CACHE_TIMEOUT
     }
     
     with open(CONFIG_PATH, 'w') as f:
@@ -111,4 +102,4 @@ def submit():
     return 'Config saved', 200
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=SERVICE_PORT)
+    app.run(host='0.0.0.0', port=5000)

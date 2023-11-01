@@ -15,22 +15,16 @@
                 <label for="cache_timeout_container">Cache Timeout</label>
                 <input id="cache_timeout" type="text">
             </div>
-            <div class="text_container" id="service_port_container" type="text">
-                <label for="service_port_container">Service Port</label>
-                <input id="service_port" type="text">
-            </div>
             <input type="button" value="Save">
         </div>
         <script>
             document.querySelector("input[type=button]").addEventListener("click", ()=>{
                 const api_key = document.querySelector("#api_key").value
                 const cache_timeout = document.querySelector("#cache_timeout").value
-                const service_port = document.querySelector("#service_port").value
 
                 var postData = {
                     "api_key": api_key,
-                    "cache_timeout": cache_timeout,
-                    "service_port": service_port
+                    "cache_timeout": cache_timeout
                 }
 
                 fetch("./submit", {

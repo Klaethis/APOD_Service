@@ -5,10 +5,10 @@ ARG API_KEY="DEMO_KEY"
 ARG $CACHE_TIMEOUT=86400
 ARG $WORKERS=4
 
-ENV PORT=$PORT
-ENV API_KEY=$API_KEY
-ENV CACHE_TIMEOUT=$CACHE_TIMEOUT
-ENV WORKERS=$WORKERS
+ENV PORT=${PORT}
+ENV API_KEY=${API_KEY}
+ENV CACHE_TIMEOUT=${CACHE_TIMEOUT}
+ENV WORKERS=${WORKERS}
 
 EXPOSE $PORT
 
@@ -18,4 +18,4 @@ WORKDIR /app
 
 RUN pip install -r requirements.txt
 
-CMD ["gunicorn", "-w", "$WORKERS", "-b", "0.0.0.0:$PORT", "apod_service:app"]
+CMD ["gunicorn", "-w", "${WORKERS}", "-b", "0.0.0.0:${PORT}", "apod_service:app"]

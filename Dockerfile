@@ -18,4 +18,4 @@ WORKDIR /app
 
 RUN pip install -r requirements.txt
 
-CMD ["gunicorn", "-w", "${WORKERS}", "-b", "0.0.0.0:${PORT}", "apod_service:app"]
+CMD ["gunicorn", "-w", ${WORKERS}, "-b", "0.0.0.0:"${PORT}, "apod_service:app"]

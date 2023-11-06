@@ -12,6 +12,8 @@ CACHE_TIMEOUT = int(os.environ.get('CACHE_TIMEOUT', 24*60*60))
 
 CONFIG_PATH = os.path.join(os.path.dirname(__file__), 'Config/config.json')
 
+ENABLE_CONFIG = os.environ.get('ENABLE_CONFIG', 'false').lower() in ('true', '1', 't', 'on', 'yes', 'y')
+
 if os.path.exists(CONFIG_PATH):
     with open(CONFIG_PATH, 'r') as f:
         config = json.load(f)
@@ -44,6 +46,8 @@ apod_cache = APODCache()
 
 @app.route('/', methods=['GET'])
 def index():
+    if not ENABLE_CONFIG:
+        return image()
     with open('Pages/index.html', 'r') as f:
         page_html = f.read()
     page = BeautifulSoup(page_html, 'html.parser')

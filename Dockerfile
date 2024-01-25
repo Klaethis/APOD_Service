@@ -22,4 +22,4 @@ WORKDIR /app
 
 RUN pip install -r requirements.txt
 
-CMD ["gunicorn", "-c", "./Config/gunicorn.py", "apod_service:app"]
+CMD ["gunicorn", "--preload", "-c", "./Config/gunicorn.py", "apod_service:app"]

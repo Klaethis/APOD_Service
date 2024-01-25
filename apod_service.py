@@ -24,8 +24,7 @@ from flask import (
 )
 
 app = Flask(__name__)
-APP_SECRET_KEY = os.environ.get('APP_SECRET_KEY')
-app.secret_key = APP_SECRET_KEY if APP_SECRET_KEY != '' else os.urandom(24)
+app.secret_key = os.urandom(24)
 
 API_KEY = os.environ.get('API_KEY', 'DEMO_KEY')
 CACHE_TIMEOUT = int(os.environ.get('CACHE_TIMEOUT', 24*60*60))
@@ -41,7 +40,7 @@ if os.path.exists(CONFIG_PATH):
             
 OAUTH_CLIENT_ID = os.environ.get('OAUTH_CLIENT_ID')
 OAUTH_CLIENT_SECRET = os.environ.get('OAUTH_CLIENT_SECRET')
-OAUTH_DISCOVERY_URL = (os.environ.get('OAUTH_DISCOVERY_URL'))
+OAUTH_DISCOVERY_URL = ('https://authentik.mikezim.org/application/o/pythontest/.well-known/openid-configuration')
 
 login_manager = LoginManager()
 login_manager.init_app(app)

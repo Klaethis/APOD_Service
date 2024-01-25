@@ -110,7 +110,7 @@ def login():
     
     request_uri = client.prepare_request_uri(
         authorization_endpoint,
-        redirect_uri='https://apod.mikezim.org/login/callback',
+        redirect_uri=request.base_url + '/callback',
         scope=['openid', 'profile', 'email'],
     )
     return redirect(request_uri)
@@ -124,7 +124,7 @@ def callback():
     
     token_url, headers, body = client.prepare_token_request(
         token_endpoint,
-        authorization_response='https://apod.mikezim.org/login/callback',
+        authorization_response=request.url,
         redirect_url=request.base_url,
         code=code
     )

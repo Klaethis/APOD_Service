@@ -122,6 +122,8 @@ def callback():
     oauth_provider_cfg = get_oauth_provider_cfg()
     token_endpoint = oauth_provider_cfg['token_endpoint']
     
+    print(f'RQURL: {request.url}\nBASE: {request.base_url}')
+    
     token_url, headers, body = client.prepare_token_request(
         token_endpoint,
         authorization_response=request.url,

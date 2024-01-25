@@ -1,8 +1,9 @@
 import cachetools
 import requests
-import sqlite3
+# import sqlite3
 import json
 import os
+import logging
 
 from oauthlib.oauth2 import WebApplicationClient
 # from db import init_db_command
@@ -122,7 +123,8 @@ def callback():
     oauth_provider_cfg = get_oauth_provider_cfg()
     token_endpoint = oauth_provider_cfg['token_endpoint']
     
-    print(f'RQURL: {request.url}\nBASE: {request.base_url}')
+    # print(f'RQURL: {request.url}\nBASE: {request.base_url}')
+    logging.warning(f'RQURL: {request.url}\nBASE: {request.base_url}')
     
     token_url, headers, body = client.prepare_token_request(
         token_endpoint,

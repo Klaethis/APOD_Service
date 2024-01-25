@@ -124,7 +124,7 @@ def callback():
     
     token_url, headers, body = client.prepare_token_request(
         token_endpoint,
-        authorization_response='https://apod.mikezim.org/login',
+        authorization_response='https://apod.mikezim.org',
         redirect_url='https://apod.mikezim.org/login/callback',
         code=code
     )

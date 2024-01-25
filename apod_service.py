@@ -46,12 +46,12 @@ OAUTH_DISCOVERY_URL = (os.environ.get('OAUTH_DISCOVERY_URL'))
 login_manager = LoginManager()
 login_manager.init_app(app)
 
-# Naive database setup
-try:
-    init_db_command()
-except sqlite3.OperationalError:
-    # Assume it's already been created
-    pass
+# # Naive database setup
+# try:
+#     init_db_command()
+# except sqlite3.OperationalError:
+#     # Assume it's already been created
+#     pass
 
 client = WebApplicationClient(OAUTH_CLIENT_ID)
 

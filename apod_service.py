@@ -99,7 +99,7 @@ def index():
         cache_timeout_box['value'] = str(CACHE_TIMEOUT)
         return str(page)
     else:
-        with open('Pages/Login.html', 'r') as f:
+        with open('Pages/login.html', 'r') as f:
             page_html = f.read()
         page = BeautifulSoup(page_html, 'html.parser')
         return str(page)

@@ -5,7 +5,7 @@ import json
 import os
 
 from oauthlib.oauth2 import WebApplicationClient
-from db import init_db_command
+# from db import init_db_command
 from bs4 import BeautifulSoup
 from user import User
 from flask_login import (

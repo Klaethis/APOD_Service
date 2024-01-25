@@ -40,7 +40,7 @@ if os.path.exists(CONFIG_PATH):
             
 OAUTH_CLIENT_ID = os.environ.get('OAUTH_CLIENT_ID')
 OAUTH_CLIENT_SECRET = os.environ.get('OAUTH_CLIENT_SECRET')
-OAUTH_DISCOVERY_URL = ('https://authentik.mikezim.org/application/o/pythontest/.well-known/openid-configuration')
+OAUTH_DISCOVERY_URL = ('https://authentik.mikezim.org/application/o/apod/.well-known/openid-configuration')
 
 login_manager = LoginManager()
 login_manager.init_app(app)

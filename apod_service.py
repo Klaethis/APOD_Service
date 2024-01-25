@@ -1,9 +1,7 @@
 import cachetools
 import requests
-# import sqlite3
 import json
 import os
-import logging
 
 from oauthlib.oauth2 import WebApplicationClient
 # from db import init_db_command
@@ -41,7 +39,7 @@ if os.path.exists(CONFIG_PATH):
             
 OAUTH_CLIENT_ID = os.environ.get('OAUTH_CLIENT_ID')
 OAUTH_CLIENT_SECRET = os.environ.get('OAUTH_CLIENT_SECRET')
-OAUTH_DISCOVERY_URL = ('https://authentik.mikezim.org/application/o/apod/.well-known/openid-configuration')
+OAUTH_DISCOVERY_URL = ('https://authentik.mikezim.org/application/o/pythontest/.well-known/openid-configuration')
 
 login_manager = LoginManager()
 login_manager.init_app(app)
@@ -111,7 +109,7 @@ def login():
     
     request_uri = client.prepare_request_uri(
         authorization_endpoint,
-        redirect_uri='https://apod.mikezim.org/login/callback',
+        redirect_uri=request.base_url.replace('http', 'https') + '/callback',
         scope=['openid', 'profile', 'email'],
     )
     return redirect(request_uri)
@@ -123,13 +121,10 @@ def callback():
     oauth_provider_cfg = get_oauth_provider_cfg()
     token_endpoint = oauth_provider_cfg['token_endpoint']
     
-    # print(f'RQURL: {request.url}\nBASE: {request.base_url}')
-    logging.warning(f'RQURL: {request.url}\nBASE: {request.base_url}')
-    
     token_url, headers, body = client.prepare_token_request(
         token_endpoint,
-        authorization_response=request.url,
-        redirect_url=request.base_url,
+        authorization_response=request.url.replace('http', 'https'),
+        redirect_url=request.base_url.replace('http', 'https'),
         code=code
     )
     token_response = requests.post(

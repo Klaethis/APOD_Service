@@ -4,37 +4,22 @@
     </head>
     <body>
         <h1>APOD Service</h1>
-        <p>Welcome to the APOD Service configuration</p>
-        
-        <div class="config">
-            <div class="text_container" id="api_key_container" type="text">
-                <label for="api_key_container">API Key</label>
-                <input id="api_key" type="text">
-            </div>
-            <div class="text_container" id="cache_timeout_container" type="text">
-                <label for="cache_timeout_container">Cache Timeout</label>
-                <input id="cache_timeout" type="text">
-            </div>
-            <input type="button" value="Save">
+        <p>Welcome to the APOD Service</p>
+
+        <div class="text_container" id="user_container">
+            
         </div>
-        <script>
-            document.querySelector("input[type=button]").addEventListener("click", ()=>{
-                const api_key = document.querySelector("#api_key").value
-                const cache_timeout = document.querySelector("#cache_timeout").value
 
-                var postData = {
-                    "api_key": api_key,
-                    "cache_timeout": cache_timeout
-                }
-
-                fetch("./submit", {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(postData)
-                })
-            })
-        </script>
+        <br>
+        <br>
+        
+        <div class="text_container" id="apod_container">
+            <div class="text_container" id="apod_info_container" type="text">
+                
+            </div>
+            <div class="image_container" id="apod_image_container" type="image">
+                <img src="/image">
+            </div>
+        </div>
     </body>
 </html>

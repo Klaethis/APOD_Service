@@ -1,0 +1,43 @@
+<html>
+    <head>
+        <title>APOD Service ADMIN</title>
+    </head>
+    <body>
+        <h1>APOD Service ADMIN</h1>
+        <p>APOD Service configuration</p>
+        
+        <div class="config">
+            <div class="text_container" id="api_key_container" type="text">
+                <label for="api_key_container">API Key</label>
+                <input id="api_key" type="text">
+            </div>
+            <div class="text_container" id="cache_timeout_container" type="text">
+                <label for="cache_timeout_container">Cache Timeout</label>
+                <input id="cache_timeout" type="text">
+            </div>
+            <input type="button" value="Save">
+            <br>
+            <br>
+            <a href="/">Home</a>
+        </div>
+        <script>
+            document.querySelector("input[type=button]").addEventListener("click", ()=>{
+                const api_key = document.querySelector("#api_key").value
+                const cache_timeout = document.querySelector("#cache_timeout").value
+
+                var postData = {
+                    "api_key": api_key,
+                    "cache_timeout": cache_timeout
+                }
+
+                fetch("./submit", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(postData)
+                })
+            })
+        </script>
+    </body>
+</html>

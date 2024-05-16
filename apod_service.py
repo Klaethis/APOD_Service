@@ -1,4 +1,4 @@
-from flask import Flask, request, send_file, redirect, url_for, render_template, session
+from flask import Flask, request, send_file, redirect, url_for, session
 from flask_oidc import OpenIDConnect
 from bs4 import BeautifulSoup
 import cachetools
@@ -12,6 +12,7 @@ CACHE_TIMEOUT = int(os.environ.get('CACHE_TIMEOUT', 24*60*60))
 
 APP_CONFIG_PATH = os.path.join(os.path.dirname(__file__), 'Config/config.json')
 OIDC_SECRETS_PATH = os.path.join(os.path.dirname(__file__), 'Config/client_secrets.json')
+OIDC_BASE_URL = os.environ.get('OIDC_BASE_URL', 'https://localhost:5000')
 
 if os.path.exists(OIDC_SECRETS_PATH):
     OIDC_CLIENT_SECRETS = json.load(open(OIDC_SECRETS_PATH, 'r'))
@@ -20,18 +21,21 @@ else:
         "web": {
             'issuer': os.environ.get('OIDC_ISSUER'),
             'client_id': os.environ.get('OIDC_CLIENT_ID'),
-            'client_secret': os.environ.get('OIDC_CLIENT_SECRET')
+            'client_secret': os.environ.get('OIDC_CLIENT_SECRET'),
         }
     }
     
 
 app = Flask(__name__)
 app.config.update({
-    'SECRET_KEY': os.urandom(24),
+    'SECRET_KEY': os.environ.get('SECRET_KEY', os.urandom(24)),
     'OIDC_CLIENT_SECRETS': OIDC_CLIENT_SECRETS,
     'OIDC_SCOPES': ['openid', 'profile', 'email'],
-    'OIDC_ID_TOKEN_COOKIE_SECURE': False,
-    'OIDC_COOKIES_SECURE': False,
+    'OIDC_ID_TOKEN_COOKIE_SECURE': True,
+    'OIDC_COOKIES_SECURE': True,
+    'OIDC_BASE_URL': OIDC_BASE_URL,
+    'OIDC_SCHEME': 'https',
+    'OVERWRITE_REDIRECT_URI': os.environ.get('OIDC_REDIRECT_URI', 'http://localhost:5000/authorize'),
 })
 
 oidc = OpenIDConnect(app)
@@ -127,12 +131,12 @@ def index():
 @app.route('/login')
 @oidc.require_login
 def login():
-    return redirect(url_for('.admin'))
+    return redirect(url_for('.index'))
 
 @app.route('/logout')
 def logout():
     oidc.logout()
-    return redirect(url_for('.index'))    
+    return redirect(url_for('.index'))
 
 @app.route('/admin', methods=['GET'])
 @oidc.require_login

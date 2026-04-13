@@ -6,6 +6,8 @@ import requests
 import hashlib
 import json
 import os
+import threading
+import time
 
 API_KEY = os.environ.get('API_KEY', 'DEMO_KEY')
 CACHE_TIMEOUT = int(os.environ.get('CACHE_TIMEOUT', 24*60*60))
@@ -13,6 +15,7 @@ CACHE_TIMEOUT = int(os.environ.get('CACHE_TIMEOUT', 24*60*60))
 APP_CONFIG_PATH = os.path.join(os.path.dirname(__file__), 'Config/config.json')
 OIDC_SECRETS_PATH = os.path.join(os.path.dirname(__file__), 'Config/client_secrets.json')
 OIDC_BASE_URL = os.environ.get('OIDC_BASE_URL', 'https://localhost:5000')
+APOD_CACHE_PATH = os.path.join(os.path.dirname(__file__), 'Config/apod_cache.json')
 
 if os.path.exists(OIDC_SECRETS_PATH):
     OIDC_CLIENT_SECRETS = json.load(open(OIDC_SECRETS_PATH, 'r'))
@@ -52,28 +55,100 @@ def get_gravatar_url(email, size=80, default='identicon', rating='g'):
     return f'https://secure.gravatar.com/avatar/{hash}?s={size}&d={default}&r={rating}'
 
 def get_nasa_apod():
-    url = f'https://api.nasa.gov/planetary/apod?api_key={API_KEY}'
+    url = f'https://api.nasa.gov/planetary/apod?api_key={API_KEY}&thumbs=true'
     try:
-        apod_info = requests.get(url, timeout=5).json()
-    except:
+        response = requests.get(url, timeout=5)
+        response.raise_for_status()
+        apod_info = response.json()
+    except Exception:
         apod_info = {'error': 'Could not get APOD information from Nasa API'}
     return apod_info
+
+
+def _read_cached_apod_from_disk():
+    if not os.path.exists(APOD_CACHE_PATH):
+        return None
+
+    try:
+        with open(APOD_CACHE_PATH, 'r') as f:
+            payload = json.load(f)
+    except Exception:
+        return None
+
+    if not isinstance(payload, dict):
+        return None
+
+    cached_at = payload.get('cached_at')
+    apod_info = payload.get('apod')
+    if not isinstance(cached_at, (int, float)) or not isinstance(apod_info, dict):
+        return None
+
+    return payload
+
+
+def _write_cached_apod_to_disk(apod_info):
+    if not isinstance(apod_info, dict):
+        return
+
+    payload = {
+        'cached_at': time.time(),
+        'apod': apod_info,
+    }
+
+    temp_path = f'{APOD_CACHE_PATH}.tmp'
+    with open(temp_path, 'w') as f:
+        json.dump(payload, f)
+    os.replace(temp_path, APOD_CACHE_PATH)
 
 class APODCache:
     def __init__(self):
         self.cache = cachetools.TTLCache(maxsize=1, ttl=CACHE_TIMEOUT)
+        self.lock = threading.Lock()
+        self.ttl = CACHE_TIMEOUT
+
+    def _is_fresh(self, cached_at):
+        return (time.time() - cached_at) < self.ttl
         
     def get_apod_info(self):
-        apod_info = self.cache.get('apod')
-        
-        if apod_info is None:
+        with self.lock:
+            apod_info = self.cache.get('apod')
+
+            if apod_info is not None:
+                return apod_info
+
+            disk_payload = _read_cached_apod_from_disk()
+            if disk_payload and self._is_fresh(disk_payload['cached_at']):
+                apod_info = disk_payload['apod']
+                self.cache.update(apod=apod_info)
+                return apod_info
+
             apod_info = get_nasa_apod()
+            if 'error' in apod_info:
+                # Keep serving stale data rather than failing intermittently.
+                if disk_payload:
+                    apod_info = disk_payload['apod']
+                elif self.cache.get('apod') is not None:
+                    apod_info = self.cache['apod']
+                return apod_info
+
             self.cache.update(apod=apod_info)
-        
-        return apod_info
+            _write_cached_apod_to_disk(apod_info)
+
+            return apod_info
+
+    def set_ttl(self, ttl_seconds):
+        with self.lock:
+            self.ttl = ttl_seconds
+            old_apod = self.cache.get('apod')
+            self.cache = cachetools.TTLCache(maxsize=1, ttl=ttl_seconds)
+            if old_apod is not None:
+                self.cache.update(apod=old_apod)
 
     def clear(self):
-        self.cache.clear()
+        with self.lock:
+            self.cache.clear()
+            if os.path.exists(APOD_CACHE_PATH):
+                os.remove(APOD_CACHE_PATH)
 
 apod_cache = APODCache()
 
@@ -160,13 +235,23 @@ def info():
 @app.route('/image', methods=['GET'])
 def image():
     apod_info = apod_cache.get_apod_info()
-    image_url = apod_info.get('url')
+    if apod_info.get('media_type') == 'image':
+        image_url = apod_info.get('url')
+    else:
+        # APOD can be video; use thumbnail when available.
+        image_url = apod_info.get('thumbnail_url')
     
     if image_url is None:
-        return 'No image found', 400
+        return 'No image found for today', 400
     
-    image_content = requests.get(image_url).content
-    return image_content, 200, {'Content-Type': 'image/jpeg'}
+    try:
+        response = requests.get(image_url, timeout=10)
+        response.raise_for_status()
+    except Exception:
+        return 'Failed to fetch image', 502
+
+    content_type = response.headers.get('Content-Type', 'image/jpeg')
+    return response.content, 200, {'Content-Type': content_type}
 
 @app.route('/favicon.ico')
 def favicon():
@@ -182,6 +267,8 @@ def clear():
 @app.route('/submit', methods=['POST'])
 @oidc.require_login
 def submit():
+    global API_KEY, CACHE_TIMEOUT
+
     api_key = request.json.get('api_key')
     cache_timeout = request.json.get('cache_timeout')
     
@@ -189,6 +276,7 @@ def submit():
         API_KEY = api_key
     if cache_timeout is not None:
         CACHE_TIMEOUT = int(cache_timeout)
+        apod_cache.set_ttl(CACHE_TIMEOUT)
     
     config = {
         'api_key': API_KEY,

@@ -1,0 +1,18 @@
+services:
+  apod-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: apod-service
+    ports:
+      - "5000:5000"
+    environment:
+      API_KEY: ${API_KEY:-DEMO_KEY}
+      CACHE_TIMEOUT: ${CACHE_TIMEOUT:-86400}
+      WORKERS: ${WORKERS:-4}
+      OIDC_ISSUER: ${OIDC_ISSUER:-}
+      OIDC_CLIENT_ID: ${OIDC_CLIENT_ID:-}
+      OIDC_CLIENT_SECRET: ${OIDC_CLIENT_SECRET:-}
+      OIDC_REDIRECT_URI: ${OIDC_REDIRECT_URI:-https://localhost:5000/callback}
+      SECRET_KEY: ${SECRET_KEY:-DEMO_KEY}
+    restart: unless-stopped
